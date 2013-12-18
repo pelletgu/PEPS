@@ -18,7 +18,7 @@ class Option {
 
   protected: 
 	double T_; /*!< maturite */
-	int TimeSteps_; /*!< nombre de pas de temps de discretisation */
+	int timeStep_; /*!< nombre de pas de temps de discretisation */
 	int size_; /*!< dimension du modele, redondant avec option::size_ */
 
   public:
@@ -41,7 +41,7 @@ class Option {
 
 
 
-	Option(double T, int TimeSteps, int size);
+	Option(double T, int timeStep, int size);
 	
 	/*!
 	 * \brief Destructeur
@@ -60,13 +60,13 @@ class Option {
 	double get_T();
 
 	/*!
-	 * \brief Accesseur de TimeSteps_
+	 * \brief Accesseur de timeStep_
 	 *
 	 *  Acceder au nombre de pas de temps de discretisation
 	 *
 	 *  \return le nombre de pas de temps de discretisation
 	 */
-	int get_timesteps();
+	int get_timeStep();
 
 	/*!
 	 * \brief Accesseur de size_
@@ -87,13 +87,13 @@ class Option {
 	void set_T(double T);
 
 	/*!
-	 * \brief Mutateur de TimeSteps_
+	 * \brief Mutateur de timeStep_
 	 *
 	 *  Modifier le nombre de pas de temps de discretisation 
 	 *
 	 * \param le nouveau nombre de pas de temps de discretisation
 	 */
-	void set_TimeSteps(int TimeSteps);
+	void set_timeStep(int timeStep);
 
 	/*!
 	 * \brief Mutateur de size_

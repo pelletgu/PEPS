@@ -1,28 +1,29 @@
-#ifndef BSH
-#define BSH
+#ifndef BsH
+#define BsH
 #include <pnl/pnl_vector.h>
 #include <pnl/pnl_random.h>
 //#include "parser.h"
 
 /*!
- *  \file	bs.h
- *  \brief	Header de la classe BS
+ *  \file	Bs.h
+ *  \brief	Header de la classe Bs
  *  \author Equipe 11
  */
 
 /*!
- * \class BS
+ * \class Bs
  * \brief Classe representant le modele de Black Scholes
  */
-class BS {
+class Bs {
   private:
 	int size_; /*!< nombre d’actifs du modele */
 	double r_; /*!< taux d’interet */
+	double* rho_; /*!< parametre de correlation */
 	PnlVect *sigma_; /*!< vecteur de volatilites */
 	PnlVect *spot_; /*!< valeurs initiales du sous-jacent */
 	PnlVect *trend_; /*!< taux utilise sous la probabilite historique */
 	PnlMat *Cho_; /*!< Matrice de Cholesky utilise pour la correlation*/
-	PnlVect *Gi_; /*!< Vecteur gaussien centré du modele de BS multidimensionnel*/
+	PnlVect *Gi_; /*!< Vecteur gaussien centré du modele de Bs multidimensionnel*/
 	PnlVect *Ld_; /*!< Ligne d de la matrice de Cholesky Cho_*/
 
   public:
@@ -30,26 +31,26 @@ class BS {
 	/*!
 	 * \brief Constructeur par defaut
 	 *
-	 * Constructeur par defaut de la classe bs
+	 * Constructeur par defaut de la classe Bs
 	 */
-	BS();
+	Bs();
 
 
 	/*!
 	 * \brief Constructeur avec argument
 	 *
-	 * Constructeur avec argument de la classe bs
+	 * Constructeur avec argument de la classe Bs
 	 *
 	 * \param pars: Liste des donnees relatives à l'option du Parser
 	 */
-	BS(int size, double r, double rho[], PnlVect *sigma, PnlVect *spot, PnlVect *trend);
+	Bs(int size, double r, double* rho, double* sigma, double *spot, double *trend);
 	
 		/*!
 	 * \brief Destructeur
 	 *
-	 * Destructeur de la classe bs
+	 * Destructeur de la classe Bs
 	 */
-	~BS();
+	~Bs();
 
 	/*!
 	 * \brief Accesseur de size_
@@ -68,6 +69,15 @@ class BS {
 	 * \return le taux d'interet du sous-jacent
 	 */
 	double get_r();
+	
+	/*!
+	 * \brief Accesseur de rho_
+	 *
+	 *  Acceder au parametre de correlation du sous-jacent
+	 *
+	 * \return le parametre de correlation du sous-jacent 
+	 */
+	double* get_rho();
 
 	/*!
 	 * \brief Accesseur de Sigma_
@@ -108,9 +118,9 @@ class BS {
 	/*!
 	 * \brief Accesseur de Gi_
 	 *
-	 *  Acceder au vecteur gaussien centre du modele de BS
+	 *  Acceder au vecteur gaussien centre du modele de Bs
 	 *
-	 *  \return le vecteur gaussien centré du modele de BS
+	 *  \return le vecteur gaussien centré du modele de Bs
 	 */
 	PnlVect *get_gi();
 
@@ -140,6 +150,15 @@ class BS {
 	 * \param le nouveau taux d'interet du sous-jacent
 	 */
 	void set_r(double r);
+	
+	/*!
+	 * \brief Mutateur de rho_
+	 *
+	 *  Modifier au parametre de correlation du sous-jacent
+	 *
+	 * \param le nouveau parametre de correlation du sous-jacent 
+	 */
+	void set_rho(double* rho);
 
 	/*!
 	 * \brief Mutateur de Sigma_
@@ -180,9 +199,9 @@ class BS {
 	/*!
 	 * \brief Mutateur de Gi_
 	 *
-	 *  Modifier le vecteur gaussien centre du modele de BS
+	 *  Modifier le vecteur gaussien centre du modele de Bs
 	 *
-	 *  \param le nouveau vecteur gaussien centre du modele de BS
+	 *  \param le nouveau vecteur gaussien centre du modele de Bs
 	 */
 	PnlVect *set_gi();
 	void set_gi(PnlVect *Gi);
@@ -231,10 +250,10 @@ class BS {
 	 * \param t (input) date a partir de laquelle on shift
 	 * \param h (input) pas de differences finies
 	 * \param d (input) indice du sous-jacent à shifter
-	 * \param timestep (input) pas de constatation du sous-jacent
+	 * \param timeStep (input) pas de constatation du sous-jacent
 	 */
 	void shift_asset (PnlMat *_shift_path, const PnlMat *path,
-		int d, double h, double t, double timestep);
+		int d, double h, double t, double timeStep);
 
 	/*!
 	 *

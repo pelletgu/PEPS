@@ -159,6 +159,19 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y $(SolutionDir)Debug\Engine.dll $(SolutionDir)Interface\bin\Engine.dll
+copy /Y $(SolutionDir)Debug\Engine.lib $(SolutionDir)Interface\bin\Engine.lib
+copy /Y $(SolutionDir)Debug\Engine.pdb $(SolutionDir)Interface\bin\Engine.pdb
+
+copy /Y "C:\Users\Fuchsg\Documents\Visual Studio 2010\Projects\pnl-win32-1.6.0\lib\libblas.dll" $(SolutionDir)Interface\bin\libblas.dll
+copy /Y "C:\Users\Fuchsg\Documents\Visual Studio 2010\Projects\pnl-win32-1.6.0\lib\liblapack.dll" $(SolutionDir)Interface\bin\liblapack.dll
+copy /Y "C:\Users\Fuchsg\Documents\Visual Studio 2010\Projects\pnl-win32-1.6.0\lib\libpnl.dll" $(SolutionDir)Interface\bin\libpnl.dll
+copy /Y "C:\Users\Fuchsg\Documents\Visual Studio 2010\Projects\pnl-win32-1.6.0\lib\libpnl.lib" $(SolutionDir)Interface\bin\libpnl.lib
+
+copy /Y $(SolutionDir)Debug\Wrapper.dll $(SolutionDir)Interface\bin\Wrapper.dll
+copy /Y $(SolutionDir)Debug\Wrapper.pdb $(SolutionDir)Interface\bin\Wrapper.pdb</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

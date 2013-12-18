@@ -15,44 +15,38 @@
             title="Documentation ASP.NET sur MSDN">documentation sur ASP.NET sur MSDN</a>.
     </p>
     <p>
-        <asp:Label id="label1" text="strike" runat="server"/>
-        <asp:TextBox id="strike" runat="server"/>
+        <asp:Label id="strike_label" text="strike" runat="server"/>
+        <asp:TextBox id="strike_tb" runat="server"/>
     </p>
     <p>
-        <asp:Label id="label11" text="sigma" runat="server"/>
-        <asp:TextBox id="sigma" runat="server"/>
+        <asp:Label id="sigma_label" text="sigma" runat="server"/>
+        <asp:TextBox id="sigma_tb" runat="server"/>
     </p>
     <p>
-        <asp:Label id="label8" text="size" runat="server"/>
-        <asp:TextBox ID="size" runat="server"></asp:TextBox>
+        <asp:Label id="size_label" text="size" runat="server"/>
+        <asp:TextBox ID="size_tb" runat="server"></asp:TextBox>
     </p>
     <p>
-        <asp:Label id="Label3" text="r" runat="server"/>
-        <asp:TextBox ID="r" runat="server"></asp:TextBox>
+        <asp:Label id="r_label" text="r" runat="server"/>
+        <asp:TextBox ID="r_tb" runat="server"></asp:TextBox>
    </p>
     <p>
-        <asp:Label id="Label4" text="rho" runat="server"/>
-        <asp:TextBox ID="rho" runat="server"></asp:TextBox>
+        <asp:Label id="rho_label" text="rho" runat="server"/>
+        <asp:TextBox ID="rho_tb" runat="server"></asp:TextBox>
     </p>
     <p>
-        <asp:Label id="Label5" text="h" runat="server"/>
-        <asp:TextBox ID="h" runat="server"></asp:TextBox>
+        <asp:Label id="h_label" text="h" runat="server"/>
+        <asp:TextBox ID="h_tb" runat="server"></asp:TextBox>
     </p>
     <p>
-        <asp:Label id="Label6" text="samples" runat="server"/>
-        <asp:TextBox ID="samples" runat="server"></asp:TextBox>
+        <asp:Label id="samples_label" text="samples" runat="server"/>
+        <asp:TextBox ID="samples_tb" runat="server"></asp:TextBox>
     </p>
     <p>
-        <asp:Label id="Label10" text="Prix" runat="server"/>
-        <asp:Label id="Label2" text="" runat="server"/>
+        <asp:Label id="prix_label" runat="server">Prix</asp:Label>
     </p>
     <p>
-        <asp:Label id="Label7" text="IC" runat="server"/>
-        <asp:Label id="Label" text="" runat="server"/>
-    </p>
-     <p>
-        <asp:Label id="Label9" text="type" runat="server"/>
-        <asp:Label id="type" text="" runat="server"/>
+        <asp:Label id="ic_label" runat="server">IC</asp:Label>
     </p>
     <p>
     <asp:Button id="gebtn1" text="Start" OnClick='price' runat="server"/>

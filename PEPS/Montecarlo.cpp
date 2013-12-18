@@ -20,7 +20,7 @@ MonteCarlo::MonteCarlo(PnlRng * rng){
   samples_ = 0;
 }
 
-MonteCarlo::MonteCarlo(BS *mod_, Playlist *opt_, PnlRng *rng, double h_, int samples_){
+MonteCarlo::MonteCarlo(Bs *mod_, Option *opt_, PnlRng *rng, double h_, int samples_){
   (*this).mod_ = mod_;
   (*this).opt_ = opt_;
   (*this).rng = rng;
@@ -35,11 +35,11 @@ MonteCarlo::MonteCarlo(BS *mod_, Playlist *opt_, PnlRng *rng, double h_, int sam
 MonteCarlo::~MonteCarlo(){
 }
 
-BS* MonteCarlo::get_mod(){
+Bs* MonteCarlo::get_mod(){
   return mod_;
 }
 
-Playlist* MonteCarlo::get_opt(){
+Option* MonteCarlo::get_opt(){
   return opt_;
 }
 
@@ -59,11 +59,11 @@ int MonteCarlo::get_samples(){
  * Mutateurs
  *
  */
-void MonteCarlo::set_mod(BS* mod){
+void MonteCarlo::set_mod(Bs* mod){
   mod_ = mod;
 }
 
-void MonteCarlo::set_opt(Playlist* opt){
+void MonteCarlo::set_opt(Option* opt){
   opt_ = opt;
 }
 
@@ -84,25 +84,23 @@ void MonteCarlo::set_samples(int samples){
  *
  */
 void MonteCarlo::price(double &prix, double &ic){
-  int size = opt_->get_Size();
-  int TimeSteps = opt_->get_Timesteps();
+	  int size = opt_->get_size();
+  int timeStep = opt_->get_timeStep();
   double r = mod_->get_r();
   double T = opt_->get_T();
   //Initialisation de path comme une matrice de dimension d x (N+1)
-  PnlMat *path = pnl_mat_create(size, TimeSteps+1);
+  PnlMat *path = pnl_mat_create(size, timeStep+1);
   //G: matrice de dimension N*d pour générer une suite iid selon la loi normale centrée réduite
-  PnlMat *G = pnl_mat_create(TimeSteps, size);
+  PnlMat *G = pnl_mat_create(timeStep, size);
   //grid: vecteur de taille N pour générer la grille de temps (t_0=0, ..., t_N)
-  PnlVect *grid = pnl_vect_create(TimeSteps+1);
+  PnlVect *grid = pnl_vect_create(timeStep+1);
   //tirages: vecteur de taille samples_ contenant les valeurs des M payoff
   PnlVect *tirages = pnl_vect_create(samples_);
   //temps: incrémentation pour chaque date de constation
-  double temps = T/TimeSteps;
-  //Nombre de sous jacents dépassant une performance de 20% 
-  int countSupVingtEnUn = 0;
+  double temps = T/timeStep;
 
   //Calcule de chaque date de constatation;
-  for (int t=0; t<TimeSteps+1; t++){
+  for (int t=0; t<timeStep+1; t++){
 	pnl_vect_set(grid, t, temps*t);
   }
 
@@ -110,63 +108,103 @@ void MonteCarlo::price(double &prix, double &ic){
   pnl_mat_set_col(path, mod_->get_spot(), 0);
   for (int j=0; j<samples_; j++){
 	//Génération de la trajectoire du modèle de Black Scholes
-	mod_->asset(path, T, TimeSteps, rng, G, grid);
-	//AJOUT DU MODULE D'ADAPTATION AU PRODUIT PLAYLIST
-	for(int k = 0; k< size; k++){
-		if((pnl_mat_get(path,k,TimeSteps)-pnl_mat_get(path,k,0))/pnl_mat_get(path,k,TimeSteps) > 0.2){
-			countSupVingtEnUn++;
-		}
-	}
-	if (countSupVingtEnUn < 3){
-		opt_->set_T(2.0);
-		double newT = opt_->get_T();
-		PnlMat *newpath = pnl_mat_create(size, (int)newT*TimeSteps+1);
-		PnlMat *newG = pnl_mat_create((int)newT*TimeSteps, size);
-		PnlVect *newgrid = pnl_vect_create((int)newT*TimeSteps+1);
-		for (int t=0; t<newT*TimeSteps+1; t++){
-			pnl_vect_set(newgrid, t, temps*t);
-		}
-		mod_->asset(newpath,T,newT*TimeSteps,newT,rng,path,TimeSteps,newG,newgrid);
-		double countSupVingtEnDeux = 0;
-		//Var temporaire
-		double pathfin;
-		double pathdeb;
-		for(int k = 0; k< size; k++){
-			pathdeb = pnl_mat_get(path,k,0);
-			pathfin = pnl_mat_get(newpath,k,newT*TimeSteps);
-			if((pathfin - pathdeb)/pathdeb > 0.2){
-				countSupVingtEnDeux++;
-			}
-		}
-		if (countSupVingtEnDeux < 3){
-			opt_->set_T(6.0);
-			double lastT = opt_->get_T();
-			PnlMat *lastpath = pnl_mat_create(size, (int)lastT*TimeSteps+1);
-			PnlMat *lastG = pnl_mat_create((int)lastT*TimeSteps, size);
-			PnlVect *lastgrid = pnl_vect_create((int)lastT*TimeSteps+1);
-			for (int t=0; t<lastT*TimeSteps+1; t++){
-				pnl_vect_set(lastgrid, t, temps*t);
-			}	
-			mod_->asset(lastpath,T,lastT*TimeSteps,lastT,rng,path,(int)newT*TimeSteps,lastG,lastgrid);
-		}else{
-			exit;
-		}
-	}
-
+	mod_->asset(path, T, timeStep, rng, G, grid);
 	//Ajout du payoff dans tirages
 	pnl_vect_set(tirages, j, opt_->payoff(path));
   }
 
-  double realT = opt_->get_T();
   //Calcul du prix à l'aide de la formule de MC
-  prix = exp(-r*realT)*(1/(double)samples_)*pnl_vect_sum(tirages);
+  prix = exp(-r*T)*(1/(double)samples_)*pnl_vect_sum(tirages);
   //Calcul de la variance de l'estimateur pour avoir l'intervalle de confiance
-  ic = (3.92/sqrt((double)samples_) )* sqrt(exp(-2*r*realT)*((1/(double)samples_)*SQR(pnl_vect_norm_two(tirages))-SQR((1/(double)samples_)*pnl_vect_sum(tirages))));
+  ic = (3.92/sqrt((double)samples_) )* sqrt(exp(-2*r*T)*((1/(double)samples_)*SQR(pnl_vect_norm_two(tirages))-SQR((1/(double)samples_)*pnl_vect_sum(tirages))));
 
   pnl_vect_free(&grid);
   pnl_vect_free(&tirages);
   pnl_mat_free(&path);
   pnl_mat_free(&G);
+ // int size = opt_->get_size();
+ // int timeStep = opt_->get_timeStep();
+ // double r = mod_->get_r();
+ // double T = opt_->get_T();
+ // //Initialisation de path comme une matrice de dimension d x (N+1)
+ // PnlMat *path = pnl_mat_create(size, timeStep+1);
+ // //G: matrice de dimension N*d pour générer une suite iid selon la loi normale centrée réduite
+ // PnlMat *G = pnl_mat_create(timeStep, size);
+ // //grid: vecteur de taille N pour générer la grille de temps (t_0=0, ..., t_N)
+ // PnlVect *grid = pnl_vect_create(timeStep+1);
+ // //tirages: vecteur de taille samples_ contenant les valeurs des M payoff
+ // PnlVect *tirages = pnl_vect_create(samples_);
+ // //temps: incrémentation pour chaque date de constation
+ // double temps = T/timeStep;
+ // //Nombre de sous jacents dépassant une performance de 20% 
+ // int countSupVingtEnUn = 0;
+
+ // //Calcule de chaque date de constatation;
+ // for (int t=0; t<timeStep+1; t++){
+	//pnl_vect_set(grid, t, temps*t);
+ // }
+
+ // //Ajout du prix spot dans la première colonne de path
+ // pnl_mat_set_col(path, mod_->get_spot(), 0);
+ // for (int j=0; j<samples_; j++){
+	////Génération de la trajectoire du modèle de Black Scholes
+	//mod_->asset(path, T, timeStep, rng, G, grid);
+	////AJOUT DU MODULE D'ADAPTATION AU PRODUIT PLAYLIST
+	//for(int k = 0; k< size; k++){
+	//	if((pnl_mat_get(path,k,timeStep)-pnl_mat_get(path,k,0))/pnl_mat_get(path,k,timeStep) > 0.2){
+	//		countSupVingtEnUn++;
+	//	}
+	//}
+	//if (countSupVingtEnUn < 3){
+	//	opt_->set_T(2.0);
+	//	double newT = opt_->get_T();
+	//	PnlMat *newpath = pnl_mat_create(size, (int)newT*timeStep+1);
+	//	PnlMat *newG = pnl_mat_create((int)newT*timeStep, size);
+	//	PnlVect *newgrid = pnl_vect_create((int)newT*timeStep+1);
+	//	for (int t=0; t<newT*timeStep+1; t++){
+	//		pnl_vect_set(newgrid, t, temps*t);
+	//	}
+	//	mod_->asset(newpath,T,newT*timeStep,newT,rng,path,timeStep,newG,newgrid);
+	//	double countSupVingtEnDeux = 0;
+	//	//Var temporaire
+	//	double pathfin;
+	//	double pathdeb;
+	//	for(int k = 0; k< size; k++){
+	//		pathdeb = pnl_mat_get(path,k,0);
+	//		pathfin = pnl_mat_get(newpath,k,newT*timeStep);
+	//		if((pathfin - pathdeb)/pathdeb > 0.2){
+	//			countSupVingtEnDeux++;
+	//		}
+	//	}
+	//	if (countSupVingtEnDeux < 3){
+	//		opt_->set_T(6.0);
+	//		double lastT = opt_->get_T();
+	//		PnlMat *lastpath = pnl_mat_create(size, (int)lastT*timeStep+1);
+	//		PnlMat *lastG = pnl_mat_create((int)lastT*timeStep, size);
+	//		PnlVect *lastgrid = pnl_vect_create((int)lastT*timeStep+1);
+	//		for (int t=0; t<lastT*timeStep+1; t++){
+	//			pnl_vect_set(lastgrid, t, temps*t);
+	//		}	
+	//		mod_->asset(lastpath,T,lastT*timeStep,lastT,rng,path,(int)newT*timeStep,lastG,lastgrid);
+	//	}else{
+	//		exit;
+	//	}
+	//}
+
+	////Ajout du payoff dans tirages
+	//pnl_vect_set(tirages, j, opt_->payoff(path));
+ // }
+
+ // double realT = opt_->get_T();
+ // //Calcul du prix à l'aide de la formule de MC
+ // prix = exp(-r*realT)*(1/(double)samples_)*pnl_vect_sum(tirages);
+ // //Calcul de la variance de l'estimateur pour avoir l'intervalle de confiance
+ // ic = (3.92/sqrt((double)samples_) )* sqrt(exp(-2*r*realT)*((1/(double)samples_)*SQR(pnl_vect_norm_two(tirages))-SQR((1/(double)samples_)*pnl_vect_sum(tirages))));
+
+ // pnl_vect_free(&grid);
+ // pnl_vect_free(&tirages);
+ // pnl_mat_free(&path);
+ // pnl_mat_free(&G);
 }
 
 void MonteCarlo::price(const PnlMat *past, double t, double &prix, double &ic){
@@ -182,19 +220,19 @@ void MonteCarlo::price(const PnlMat *past, double t, double &prix, double &ic){
 	return;
   }
 
-  int size = opt_->get_Size();
-  int TimeSteps = opt_->get_Timesteps();
+  int size = opt_->get_size();
+  int timeStep = opt_->get_timeStep();
   double r = mod_->get_r();
   //Initialisation de path comme une matrice de dimension d x (N+1)
-  PnlMat *path = pnl_mat_create(size, TimeSteps+1);
+  PnlMat *path = pnl_mat_create(size, timeStep+1);
   //tirages: vecteur de taille samples_ contenant la valeur des payoff de l'option
   PnlVect *tirages = pnl_vect_create(samples_);
   //temps: incrémentation pour chaque date de constatation
-  double temps = T/TimeSteps;
+  double temps = T/timeStep;
   //extract: vecteur de taille size servant à extraire de la matrice past les colonnes pour les insérer dans path
   PnlVect *extract = pnl_vect_create(size);
 
-  //taille: entier servant à déterminer le nombre de d'évolution du sous jacent (TimeSteps-taille termes à simuler pour chaque actif)
+  //taille: entier servant à déterminer le nombre de d'évolution du sous jacent (timeStep-taille termes à simuler pour chaque actif)
   //Si t est un pas d'incrémentation du temps alors s_{t_i} et s_t sont confondus donc l'indice i est égal à past->n-1
   //Sinon i=past->n-2
   int taille;
@@ -203,13 +241,13 @@ void MonteCarlo::price(const PnlMat *past, double t, double &prix, double &ic){
   else
 	taille = past->n-2;
   //G: matrice de dimension (N-taille)*d pour générer une suite iid selon la loi normale centrée réduite
-  PnlMat *G = pnl_mat_create(TimeSteps-taille, size);
+  PnlMat *G = pnl_mat_create(timeStep-taille, size);
   //Grid: vecteur de taille N-taille+1 pour générer la grille de temps (t, t_{i+1}, ..., t_{N})
-  PnlVect *grid = pnl_vect_create(TimeSteps-taille+1);
+  PnlVect *grid = pnl_vect_create(timeStep-taille+1);
   pnl_vect_set(grid, 0, t);
 
   //Calcul de chaque date de constatation;
-  for (int i=1; i<TimeSteps-taille+1; i++){
+  for (int i=1; i<timeStep-taille+1; i++){
 	pnl_vect_set(grid, i, temps*(i+taille));
   }
 
@@ -228,7 +266,7 @@ void MonteCarlo::price(const PnlMat *past, double t, double &prix, double &ic){
 	if (t==T)
 	  pnl_mat_clone(path,past);
 	else  
-	  mod_->asset(path, t, TimeSteps , T, rng, past, taille, G, grid);
+	  mod_->asset(path, t, timeStep , T, rng, past, taille, G, grid);
 	//Ajout dans tirages
 	pnl_vect_set(tirages, j, opt_->payoff(path));
   }
@@ -246,8 +284,8 @@ void MonteCarlo::price(const PnlMat *past, double t, double &prix, double &ic){
 
 
 void MonteCarlo::delta (const PnlMat *past, double t, PnlVect *delta, PnlVect *ic){
-  int size = opt_->get_Size();
-  int TimeSteps = opt_->get_Timesteps();
+  int size = opt_->get_size();
+  int timeStep = opt_->get_timeStep();
   double r = mod_->get_r();
   double T = opt_->get_T();
   double temps1 = 0;
@@ -256,17 +294,17 @@ void MonteCarlo::delta (const PnlMat *past, double t, PnlVect *delta, PnlVect *i
   double facteur;
   double result, resultic;
   //Temps: incrémentation pour chaque date de constatation
-  double temps = T/TimeSteps;
+  double temps = T/timeStep;
   //Extract: vecteur de taille size servant à extraire de la matrice past les colonnes pour les insérer dans path
   PnlVect *extract = pnl_vect_create(size);
   //On initialise path, _shift_path_plus et _shift_path_moins comme des matrices de dimension d x (N+1)
-  PnlMat *path = pnl_mat_create(size, TimeSteps+1);  
-  PnlMat *_shift_path_plus = pnl_mat_create(size, TimeSteps+1);
-  PnlMat *_shift_path_moins = pnl_mat_create(size, TimeSteps+1);
+  PnlMat *path = pnl_mat_create(size, timeStep+1);  
+  PnlMat *_shift_path_plus = pnl_mat_create(size, timeStep+1);
+  PnlMat *_shift_path_moins = pnl_mat_create(size, timeStep+1);
   PnlVect *tirages = pnl_vect_create(samples_);
   PnlVect *tirages2 =  pnl_vect_create(samples_);
 
-  //Taille: entier servant à déterminer le nombre de d'évolution du sous jacent (TimeSteps-taille termes à simuler pour chaque actif)
+  //Taille: entier servant à déterminer le nombre de d'évolution du sous jacent (timeStep-taille termes à simuler pour chaque actif)
   //Si t est un pas d'incrémentation du temps alors s_{t_i} et s_t sont confondus donc l'indice i est égal à past->n-1
   //Sinon i=past->n-2
   int taille;
@@ -276,11 +314,11 @@ void MonteCarlo::delta (const PnlMat *past, double t, PnlVect *delta, PnlVect *i
 	taille = past->n-2;
 
   //G: matrice de dimension (N-taille)*d pour générer une suite iid selon la loi normale centrée réduite
-  PnlMat *G = pnl_mat_create(TimeSteps-taille, size);
+  PnlMat *G = pnl_mat_create(timeStep-taille, size);
   //Grid: vecteur de taille N-taille+1 pour générer la grille de temps (t, t_{i+1}, ..., t_{N})
-  PnlVect *grid = pnl_vect_create(TimeSteps-taille+1);
+  PnlVect *grid = pnl_vect_create(timeStep-taille+1);
   pnl_vect_set(grid, 0, t);
-  for (int i=1; i<TimeSteps-taille+1; i++){
+  for (int i=1; i<timeStep-taille+1; i++){
 	//On calcule chaque date de constatation;
 	pnl_vect_set(grid, i, temps*(i+taille));
   }
@@ -299,11 +337,11 @@ void MonteCarlo::delta (const PnlMat *past, double t, PnlVect *delta, PnlVect *i
 	  if (t==T)
 		pnl_mat_clone(path,past);
 	  else {
-		mod_->asset(path, t, TimeSteps, T, rng, past, taille, G, grid);
+		mod_->asset(path, t, timeStep, T, rng, past, taille, G, grid);
 	  }
 	  // On récupère la trajectoire shiftée
-	  mod_->shift_asset(_shift_path_plus, path, d, h_, t,TimeSteps);
-	  mod_->shift_asset (_shift_path_moins, path, d, -h_, t,TimeSteps);
+	  mod_->shift_asset(_shift_path_plus, path, d, h_, t,timeStep);
+	  mod_->shift_asset (_shift_path_moins, path, d, -h_, t,timeStep);
 
 	  //On calcul la valeur du payoff et on retiens la différence
 	  temps1 = opt_->payoff(_shift_path_plus);
@@ -345,12 +383,12 @@ void MonteCarlo::couv(PnlMat *past, double &pl, int H, double T)
   mod_->simul_market(past, H, T, rng);
 
   double r = mod_->get_r();
-  int size = opt_->get_Size();
-  int TimeSteps = opt_->get_Timesteps();
+  int size = opt_->get_size();
+  int timeStep = opt_->get_timeStep();
   //temps_tau: pas de discrétisation du temps avec H comme nombre de dates
   double temps_tau = T/H;
-  //mult: coefficient multiplicateur de H et TimeSteps
-  int mult = (int)(H/TimeSteps);
+  //mult: coefficient multiplicateur de H et timeStep
+  int mult = (int)(H/timeStep);
   //compteur: permet de savoir à quel length correspond les colonnes de past avec H dates et les colonnes dont on a besoin avec N dates
   int compteur = 0;
   int length =0;

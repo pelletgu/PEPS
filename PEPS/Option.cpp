@@ -10,19 +10,19 @@
 
 Option :: Option(){
   T_ = 0;
-  TimeSteps_ = 0;
+  timeStep_ = 0;
   size_ = 0;
 }
 
 //Option::Option(Parser pars){
 //  T_ = pars.getDouble("maturity");
-//  TimeSteps_ = pars.getInt("timestep number");
+//  timeStep_ = pars.getInt("timestep number");
 //  size_ = pars.getInt("option size");
 //}
 
-Option::Option(double T, int TimeSteps, int size){
+Option::Option(double T, int timeStep, int size){
 	T_ = T;
-    TimeSteps_ = TimeSteps;
+    timeStep_ = timeStep;
     size_ = size;
 }
 
@@ -33,8 +33,8 @@ double Option :: get_T(){
   return T_;
 }
 
-int Option :: get_timesteps(){
-  return TimeSteps_;
+int Option :: get_timeStep(){
+  return timeStep_;
 }
 
 int Option :: get_size(){
@@ -45,8 +45,8 @@ void Option :: set_T(double T){
   T_ = T;
 }
 
-void Option :: set_TimeSteps(int TimeSteps){
-  TimeSteps_ = TimeSteps;
+void Option :: set_timeStep(int timeStep){
+  timeStep_ = timeStep;
 }
 
 void Option :: set_size(int size){

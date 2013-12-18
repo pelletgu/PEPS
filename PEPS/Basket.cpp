@@ -1,41 +1,40 @@
-# include "option.h"
-# include "basket.h"
+# include "Option.h"
+# include "Basket.h"
 # include <pnl/pnl_mathtools.h>
 
 /*!
- * \file basket.cpp
+ * \file Basket.cpp
  * \brief Option panier
  * \author Equipe 11
  */
 
 Basket :: Basket() : Option() {
-  Strike_ = 0;
+  strike_ = 0;
   Coeff_ = pnl_vect_new();
 }
 
-//Basket :: Basket(Parser& pars):Option(pars){
-//  Strike_ = pars.getDouble("strike");
-//  Coeff_ = pnl_vect_copy(pars.getVect("payoff coefficients"));
-//}
-Basket::Basket(double strike, const PnlVect *coeff):Option(1,100,1){
-	Strike_ = strike;
-	Coeff_ = pnl_vect_copy(coeff);
+Basket::Basket(double strike, double* coeff, double T, int timeStep, int size) : Option(T, timeStep, size){
+	strike_ = strike;
+	Coeff_ = pnl_vect_create(size_);
+	for (int i = 0; i < size_; i++){
+		LET(Coeff_, i) = coeff[i];
+	}
 }
 
 Basket :: ~Basket(){
   pnl_vect_free(&Coeff_);
 }
 
-double Basket :: get_Strike() {
-  return Strike_;
+double Basket :: get_strike() {
+  return strike_;
 }
 
 PnlVect * Basket :: get_Coeff() {
   return Coeff_;
 }
 
-void Basket :: set_Strike(double Strike) {
-  Strike_ = Strike;
+void Basket :: set_strike(double strike) {
+  strike_ = strike;
 }
 
 void Basket :: set_Coeff(PnlVect *Coeff) {
@@ -48,7 +47,7 @@ double Basket :: payoff (const PnlMat *path) {
 
   //On met dans final la dernière colonne de Path correspond à la valeur à maturité des sous-jacents.
   pnl_mat_get_col(final, path, (path->n-1));
-  sum = pnl_vect_scalar_prod(final, Coeff_) - Strike_;
+  sum = pnl_vect_scalar_prod(final, Coeff_) - strike_;
   pnl_vect_free(&final);
   //On retourne le max entre le résultat de la somme et 0
   return MAX(sum, 0);

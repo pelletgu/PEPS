@@ -1,8 +1,7 @@
 #ifndef MonteCarloH
 #define MonteCarloH
-//#include "parser.h"
-#include "bs.h"
-//#include "option.h"
+#include "Bs.h"
+#include "option.h"
 #include "playlist.h"
 #include <pnl/pnl_random.h>
 
@@ -19,8 +18,8 @@
 
 class MonteCarlo {
   private:
-	BS *mod_; /*!< pointeur vers le modele */
-	Playlist *opt_; /*!< pointeur sur l’option */
+	Bs *mod_; /*!< pointeur vers le modele */
+	Option *opt_; /*!< pointeur sur l’option */
 	PnlRng *rng; /*!< pointeur sur le generateur */
 	double h_; /*!< pas de difference finie */
 	int samples_; /*!< nombre de tirages Monte Carlo */
@@ -47,13 +46,13 @@ class MonteCarlo {
 	 * \param h_: pas de difference finie
 	 * \param samples_: nombre de tirages Monte Carlo
 	 */
-	MonteCarlo(BS *mod_, Playlist *opt_, PnlRng *rng, double h_, int samples_);
+	MonteCarlo(Bs *mod_, Option *opt_, PnlRng *rng, double h_, int samples_);
 
 
 	/*!
 	 * \brief Destructeur
 	 *
-	 * Destructeur de la classe bs
+	 * Destructeur de la classe Bs
 	 */
 	~MonteCarlo();
 
@@ -65,7 +64,7 @@ class MonteCarlo {
 	 *
 	 *  \return le modele du sous-jacent
 	 */
-	BS* get_mod();
+	Bs* get_mod();
 
 	/*!
 	 * \brief Accesseur de opt_
@@ -74,7 +73,7 @@ class MonteCarlo {
 	 *
 	 * \return l'option
 	 */
-	Playlist* get_opt();
+	Option* get_opt();
 
 	/*!
 	 * \brief Accesseur de rng_
@@ -112,7 +111,7 @@ class MonteCarlo {
 	 *
 	 * \param le nouveau modele
 	 */
-	void set_mod(BS* mod);
+	void set_mod(Bs* mod);
 
 	/*!
 	 * \brief Mutateur de opt_
@@ -121,7 +120,7 @@ class MonteCarlo {
 	 *
 	 * \param la nouvelle option
 	 */
-	void set_opt(Playlist* opt);
+	void set_opt(Option* opt);
 
 	/*!
 	 * \brief Mutateur de rng_

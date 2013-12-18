@@ -8,17 +8,17 @@
  */
 
 Playlist :: Playlist(){
-  Size_ = 4;
+  size_ = 4;
   T_ = 1;
-  TimeSteps_ = 0;
-  Strike_ = 0;
+  timeStep_ = 0;
+  strike_ = 0;
 }
 
-Playlist :: Playlist(double T, int Timesteps, int size, double Strike){
+Playlist :: Playlist(double T, int timeStep, int size, double Strike){
 	T_ = T;
-	TimeSteps_ = Timesteps;
-	Size_ = size;
-	Strike_ = Strike;
+	timeStep_ = timeStep;
+	size_ = size;
+	strike_ = Strike;
 }
 
 Playlist :: ~Playlist(){
@@ -28,35 +28,35 @@ double Playlist :: get_T() {
   return T_;
 }
 
-int Playlist :: get_Timesteps() {
-  return TimeSteps_;
+int Playlist :: get_timeStep() {
+  return timeStep_;
 }
 
-int Playlist:: get_Size(){
-	return Size_;
+int Playlist:: get_size(){
+	return size_;
 }
 
-double Playlist :: get_Strike() {
-  return Strike_;
+double Playlist :: get_strike() {
+  return strike_;
 }
 
 void Playlist :: set_T(double T) {
   T_ = T;
 }
 
-void Playlist :: set_Timesteps(int TimeSteps) {
-  TimeSteps_ = TimeSteps;
+void Playlist :: set_timeStep(int timeStep) {
+  timeStep_ = timeStep;
 }
 
-void Playlist:: set_Size(int size){
-	Size_ = size;
+void Playlist:: set_size(int size){
+	size_ = size;
 }
 
-void Playlist :: set_Strike(double Strike) {
-  Strike_ = Strike;
+void Playlist :: set_strike(double Strike) {
+  strike_ = Strike;
 }
 
 double Playlist :: payoff (const PnlMat *path) {
   //On retourne le max entre le résultat de la somme et 0
-  return MAX(pnl_mat_get(path,0,50)-Strike_, 0);
+  return MAX(pnl_mat_get(path,0,50)-strike_, 0);
 }

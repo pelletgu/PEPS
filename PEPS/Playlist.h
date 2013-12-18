@@ -17,9 +17,9 @@ class Playlist{
 
   private:
 	double T_; /*!< maturite fixé à 1an par défault */
-	int TimeSteps_; /*!< nombre de pas de temps de discretisation pour 1 année */
-	int Size_; /*!< dimension du modele, redondant avec option::size_, fixé à 4 */
-	double Strike_; /*!<Valeur d'une part normalement soit 150€*/
+	int timeStep_; /*!< nombre de pas de temps de discretisation pour 1 année */
+	int size_; /*!< dimension du modele, redondant avec option::size_, fixé à 4 */
+	double strike_; /*!<Valeur d'une part normalement soit 150€*/
 
   public:
 
@@ -37,7 +37,7 @@ class Playlist{
 	 *
 	 * \param pars: Liste des donnees relatives a l'option du Parser
 	 */
-	Playlist(double T, int Timesteps, int Size, double Strike);
+	Playlist(double T, int timeStep, int size, double strike);
 	/*!
 	 * \brief Destructeur
 	 *
@@ -55,31 +55,31 @@ class Playlist{
 	double get_T();
 
 	/*!
-	 * \brief Accesseur de Timesteps_
+	 * \brief Accesseur de timeStep_
 	 *
 	 *  Acceder au nombre de pas de discrétisation par an de l'option
 	 *
 	 * \return le nombre de pas de discrétisation de l'option 
 	 */
-	int get_Timesteps();
+	int get_timeStep();
 
 	/*!
-	 * \brief Accesseur de Size_
+	 * \brief Accesseur de size_
 	 *
 	 *  Acceder au nombre de sous ajcents de l'option
 	 *
 	 * \return le nombre de sous jacents de l'option 
 	 */
-	int get_Size();
+	int get_size();
 
 	/*!
-	 * \brief Accesseur de Strike_
+	 * \brief Accesseur de strike_
 	 *
 	 *  Acceder au strike de l'option
 	 *
 	 * \return le strike de l'option 
 	 */
-	double get_Strike();
+	double get_strike();
 
 	/*!
 	 * \brief Mutateur de T_
@@ -91,31 +91,31 @@ class Playlist{
 	void set_T(double T);
 
 	/*!
-	 * \brief Mutateur de TimeSteps
+	 * \brief Mutateur de timeStep
 	 *
 	 * Modifie la valeur du nombre de discrétisation de l'option
 	 *
-	 * \param Timesteps : nouveau nombre de dsicrétisation
+	 * \param timeStep : nouveau nombre de dsicrétisation
 	 */
-	void set_Timesteps(int TimeSteps);
+	void set_timeStep(int timeStep);
 
 	/*!
-	 * \brief Mutateur de Size_
+	 * \brief Mutateur de size_
 	 *
 	 * Modifie la valeur du nombre de sous jacents de l'option
 	 *
 	 * \param Size: nouveau nombre de sous jacent
 	 */
-	void set_Size(int Size);
+	void set_size(int size);
 
 	/*!
-	 * \brief Mutateur de Strike_
+	 * \brief Mutateur de strike_
 	 *
 	 * Modifie la valeur du strike de l'option
 	 *
 	 * \param Strike: nouveau strike
 	 */
-	void set_Strike(double Strike);
+	void set_strike(double strike);
 
 	/*!
 	 * \brief Payoff option panier

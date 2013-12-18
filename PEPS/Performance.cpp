@@ -37,7 +37,7 @@ double Performance :: payoff (const PnlMat *path) {
   PnlVect* numerateur = pnl_vect_create(size_);
   PnlVect* denominateur = pnl_vect_create(size_);
 
-  for (int i=1; i<TimeSteps_+1; i++){
+  for (int i=1; i<timeStep_+1; i++){
 	for (int d=0; d<size_; d++){
 	  //On met les d actif au temps t_i dans numerateur
 	  //et ceux au temps t_{i-1} dans denominateur
@@ -48,7 +48,7 @@ double Performance :: payoff (const PnlMat *path) {
 	  sum = sum + temp_num/temp_deno;
 	}
   }
-  sum = sum/(double)(TimeSteps_) - 1;
+  sum = sum/(double)(timeStep_) - 1;
   pnl_vect_free(&numerateur);
   pnl_vect_free(&denominateur);
   return 1+MIN(MAX(sum,0), 0.1);

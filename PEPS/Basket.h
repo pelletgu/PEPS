@@ -1,15 +1,8 @@
-#include "option.h"
+#include "Option.h"
 #include "pnl/pnl_matrix.h"
 #include "pnl/pnl_vector.h"
 #ifndef BasketH
 #define BasketH
-
-/*!
- *  \file	basket.h
- *  \brief	Header de la classe fille d'Option: basket
- *  \author Equipe 11
- */
-
 /*!
  * \class Basket
  * \brief Classe representant l'option panier
@@ -17,7 +10,7 @@
 class Basket : public Option {
 
   private:
-	double Strike_; /*! strike de l'option */ 
+	double strike_; /*! strike de l'option */ 
 	PnlVect *Coeff_; /*! payoff coefficients */
 
   public:
@@ -25,34 +18,26 @@ class Basket : public Option {
 	/*!
 	 * \brief Constructeur par defaut
 	 *
-	 * Constructeur par defaut de la classe basket
+	 * Constructeur par defaut de la classe Basket
 	 */
 	Basket();
+	Basket(double strike, double* coeff, double T, int timeStep, int size);
 
-	/*!
-	 * \brief Constructeur avec argument
-	 *
-	 * Constructeur avec argument de la classe basket
-	 *
-	 * \param pars: Liste des donnees relatives a l'option du Parser
-	 */
-//	Basket(Parser& pars);
-	Basket(double strike, const PnlVect *coeff);
 	/*!
 	 * \brief Destructeur
 	 *
-	 * Destructeur de la classe basket
+	 * Destructeur de la classe Basket
 	 */
 	virtual ~Basket();
 
 	/*!
-	 * \brief Accesseur de Strike_
+	 * \brief Accesseur de strike_
 	 *
 	 *  Acceder au strike de l'option
 	 *
 	 * \return le strike de l'option 
 	 */
-	double get_Strike();
+	double get_strike();
 
 	/*!
 	 * \brief Accesseur de Coeff_
@@ -64,13 +49,13 @@ class Basket : public Option {
 	PnlVect * get_Coeff();
 
 	/*!
-	 * \brief Mutateur de Strike_
+	 * \brief Mutateur de strike_
 	 *
 	 * Modifie la valeur du strike de l'option
 	 *
 	 * \param Strike: nouveau strike
 	 */
-	void set_Strike(double Strike);
+	void set_strike(double strike);
 
 	/*!
 	 * \brief Mutateur de Coeff_
@@ -89,7 +74,8 @@ class Basket : public Option {
 	 * \param path: matrice de taille d x (N+1) contenant une trajectoire du modele telle que creee par la fonction asset
 	 * \return payoff de l'option panier
 	 */
-	 double payoff (const PnlMat * path);
+	double payoff (const PnlMat * path);
 }; 
+
 #endif 
 

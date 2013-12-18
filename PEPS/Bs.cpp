@@ -1,18 +1,19 @@
 /*!
- *  \file	bs.cpp
+ *  \file	Bs.cpp
  *  \brief	Implémentation de la classe Black-SCholes
  *  \author Equipe 11
  */
 
-#include "bs.h"
+#include "Bs.h"
 #include <math.h>
 #include <cstdio>
 #include "montecarlo.h"
 
 using namespace std;
-BS::BS(){
+Bs::Bs(){
   size_ = 0;
   r_ = 0.0;
+  rho_ = new double();
   sigma_ = pnl_vect_new();
   spot_ = pnl_vect_new();
   trend_ = pnl_vect_new();
@@ -22,26 +23,36 @@ BS::BS(){
 }
 
 
-BS::BS(int size, double r,double rho[], PnlVect *sigma, PnlVect *spot, PnlVect *trend){
-  (*this).size_ = size;
-  (*this).r_ = r;
-  (*this).sigma_ = pnl_vect_copy(sigma);
-  (*this).spot_ = pnl_vect_copy(spot);
-  (*this).trend_ = pnl_vect_copy(trend);
-  (*this).Cho_ = pnl_mat_create(size_, size_);
-  for (int j=0; j<size_; j++){
-	  for(int i=0; i<size_; i++){
-		  pnl_mat_set(Cho_,j,i,rho[j*size_+i]);
-	  }
-	pnl_mat_set_diag(Cho_, 1, j);
-  }
-  pnl_mat_chol(Cho_);
-  Gi_ = pnl_vect_create(size_);
-  Ld_ = pnl_vect_create(size_);
+Bs::Bs(int size, double r, double* rho, double* sigma, double* spot, double* trend){
+	(*this).size_ = size;
+	(*this).r_ = r;
+	(*this).rho_ = rho;
+	(*this).sigma_ = pnl_vect_create(size_);
+	(*this).spot_ = pnl_vect_create(size_);
+	(*this).trend_ = pnl_vect_create(size_);
+		(*this).Cho_ = pnl_mat_create_from_double(size_, size_, 1);
+	int compteur = -1;
+	for (int i = 1; i < size; i++){
+		for (int j = 0 ; j < i; j++){
+			MLET(Cho_, i, j) = rho_[++compteur];
+			MLET(Cho_, j, i) = rho_[compteur];
+		}
+	}
+	for (int i = 0; i < size_; i++){
+			LET(sigma_, i) = sigma[i];
+			LET(spot_, i) = spot[i];
+		if (trend != NULL)
+			LET(trend_, i) = trend[i];
+		pnl_mat_set_diag(Cho_, 1, i);
+	}
+	pnl_mat_chol(Cho_);
+
+	Gi_ = pnl_vect_create(size_);
+	Ld_ = pnl_vect_create(size_);
 }
 
 
-BS::~BS(){
+Bs::~Bs(){
   pnl_vect_free(&sigma_);
   pnl_vect_free(&spot_);
   pnl_vect_free(&trend_);
@@ -50,73 +61,80 @@ BS::~BS(){
   pnl_mat_free(&Cho_);
 }
 
-int BS::get_size(){
+int Bs::get_size(){
   return size_;
 }
 
-double BS::get_r(){
+double Bs::get_r(){
   return r_;
 }
 
+double* Bs::get_rho(){
+  return rho_;
+}
 
-PnlVect * BS::get_sigma(){
+PnlVect * Bs::get_sigma(){
   return sigma_;
 }
 
-PnlVect * BS::get_spot(){
+PnlVect * Bs::get_spot(){
   return spot_;
 }
 
-PnlVect * BS::get_trend(){
+PnlVect * Bs::get_trend(){
   return trend_;
 }
 
-PnlMat * BS::get_cho(){
+PnlMat * Bs::get_cho(){
   return Cho_;
 }
 
-PnlVect * BS::get_gi(){
+PnlVect * Bs::get_gi(){
   return Gi_;
 }
 
-PnlVect * BS::get_ld(){
+PnlVect * Bs::get_ld(){
   return Ld_;
 }
 
-void BS::set_size(int size){
+void Bs::set_size(int size){
   size_ = size;
 }
 
-void BS::set_r(double r){
+void Bs::set_r(double r){
   r_ = r;
 }
 
 
-void BS::set_sigma(PnlVect *sigma){
+void Bs::set_rho(double* rho){
+  rho_ = rho;
+}
+
+void Bs::set_sigma(PnlVect *sigma){
   sigma_ = sigma;
 }
 
-void BS::set_spot(PnlVect *spot){
+void Bs::set_spot(PnlVect *spot){
   spot_ = spot;
 }
 
-void BS::set_trend(PnlVect *trend){
+void Bs::set_trend(PnlVect *trend){
   trend_ = trend;
 }
 
-void BS::set_cho(PnlMat *Cho){
+void Bs::set_cho(PnlMat *Cho){
   Cho_ = pnl_mat_copy(Cho);
 }
 
-void BS::set_gi(PnlVect *Gi){
+void Bs::set_gi(PnlVect *Gi){
   Gi_ = Gi;
 }
 
-void BS::set_ld(PnlVect *Ld){
+void Bs::set_ld(PnlVect *Ld){
   Ld_ = Ld;
 }
 
-void BS::asset(PnlMat *path, double T, int N, PnlRng *rng, PnlMat* G, PnlVect* grid){
+void Bs::asset(PnlMat *path, double T, int N, PnlRng *rng, PnlMat* G, PnlVect* grid){
   //s: double pour la valeur du sous-jacent à la date t_{i+1}
   double s;
   //diff: double t_{i+1}-t_{i}
@@ -133,7 +151,7 @@ void BS::asset(PnlMat *path, double T, int N, PnlRng *rng, PnlMat* G, PnlVect* g
 	  pnl_mat_get_row(Gi_, G, i);
 	  //Calcul de la différence de pas de temps
 	  diff = pnl_vect_get(grid, i+1)-pnl_vect_get(grid, i);
-	  //Calcul de l'évolution du sous-jacent à l'aide de la formule du modèle de BS
+	  //Calcul de l'évolution du sous-jacent à l'aide de la formule du modèle de Bs
 	  s = pnl_mat_get(path, d, i)*
 		exp((r_-pow(pnl_vect_get(sigma_, d),2.0)/2)*diff +
 			pnl_vect_get(sigma_, d)*sqrt(diff)*pnl_vect_scalar_prod(Ld_, Gi_));
@@ -143,7 +161,7 @@ void BS::asset(PnlMat *path, double T, int N, PnlRng *rng, PnlMat* G, PnlVect* g
   }
 }
 
-void BS::asset(PnlMat *path, double t, int N, double T, PnlRng *rng, const PnlMat *past, int taille, PnlMat* G, PnlVect* grid){
+void Bs::asset(PnlMat *path, double t, int N, double T, PnlRng *rng, const PnlMat *past, int taille, PnlMat* G, PnlVect* grid){
   //s: double pour la valeur du sous-jacent à la date t_{i+1}
   double s;
   //diff: double t_{i+1}-t_{i}
@@ -167,7 +185,7 @@ void BS::asset(PnlMat *path, double t, int N, double T, PnlRng *rng, const PnlMa
 		s = pnl_mat_get(past, d, past->n-1);
 	  else
 		s = pnl_mat_get(path, d, i+taille);
-	  //Calcul de l'évolution du sous-jacent à l'aide de la formule du modèle de BS
+	  //Calcul de l'évolution du sous-jacent à l'aide de la formule du modèle de Bs
 	  s = s*exp((r_-pow(pnl_vect_get(sigma_, d),2.0)/2)*diff + pnl_vect_get(sigma_, d) * sqrt(diff) * pnl_vect_scalar_prod(Ld_, Gi_));
 	  //Ajout du résultat dans path
 	  pnl_mat_set(path, d, i+taille+1, s);
@@ -176,17 +194,17 @@ void BS::asset(PnlMat *path, double t, int N, double T, PnlRng *rng, const PnlMa
 }
 
 
-void BS:: shift_asset (PnlMat *_shift_path, const PnlMat *path,
-	int d, double h, double t, double timestep){
+void Bs:: shift_asset (PnlMat *_shift_path, const PnlMat *path,
+	int d, double h, double t, double timeStep){
   pnl_mat_clone(_shift_path, path);
-  for (int i=0; i<timestep+1; i++){
+  for (int i=0; i<timeStep+1; i++){
 	if (i>t){
 	  pnl_mat_set(_shift_path, d,i, (1+h)*pnl_mat_get(path, d,i));
 	}
   }
 }
 
-void BS:: simul_market (PnlMat* past, int H, double T, PnlRng *rng){
+void Bs:: simul_market (PnlMat* past, int H, double T, PnlRng *rng){
   //Temps: incrémentation pour chaque date de constation
   double temps = T/H;
   //s: valeur du sous-jacent à la date t_{i+1}
